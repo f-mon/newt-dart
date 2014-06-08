@@ -7,77 +7,78 @@ void main() {
 
   test("loadApplication", () {
     var registry = new Registry();
-    new ApplicationLoader(registry).load("http://127.0.0.1:3030/newt/web/sampleApp.json")
-    .then(expectAsync((Application app) {
+    new ApplicationLoader(registry).load("http://127.0.0.1:3030/newt-dart/web/sampleApp.json").then(expectAsync((Application app) {
       expect(app.name, equals("sampleApp"));
-      expect(app.getActivityDef("activityOne"),isNotNull);
+      expect(app.getActivityDef("activityOne"), isNotNull);
     }));
-      
+
   });
-  
-  
+
+
   test("loadStartFirstActivity", () {
 
     Registry registry = new Registry();
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry);
-    
-    apploader.load("http://127.0.0.1:3030/newt/web/sampleApp.json")
-    .then(expectAsync((Application app) {
-      return manager.startRootActivity("sampleApp","activityOne"); 
-    }))
-    .then(expectAsync((Activity activity) {
+
+    apploader.load("http://127.0.0.1:3030/newt-dart/web/sampleApp.json").then(expectAsync((Application app) {
+      return manager.startRootActivity("sampleApp", "activityOne");
+    })).then(expectAsync((Activity activity) {
       expect(activity.name, equals("activityOne"));
       expect(activity.status, equals("running"));
     }));
-      
+
   });
-  
+
 
 }
 
 
 class ActivityManager {
- 
+
   Registry registry;
   List<Activity> activityStack = new List();
-  
+
   ActivityManager(this.registry);
-  
-  
-  Future<Activity> startChildActivity(String appName,String activityName) {
-    return null;  
+
+
+  Future<Activity> startChildActivity(String appName, String activityName) {
+    return null;
   }
-  
-  Future<Activity> startRootActivity(String appName,String activityName) {
+
+  Future<Activity> startRootActivity(String appName, String activityName) {
     closeAllActivities();
-    Application application = registry.getApplication(appName);
-    Map activityDef = application.getActivityDef(activityName);
-    Activity newActivity = new Activity(application, activityDef);
-    
-    return null;  
+    return _createAndStartActivity(appName, activityName);
   }
-  
+
   Future closeAllActivities() {
     if (activityStack.isEmpty) {
-      return new Future(()=>null);
+      return new Future(() => null);
     }
-    return closeActivity().then((d){
+    return closeActivity().then((d) {
       return closeAllActivities();
     });
   }
-  
+
   Future closeActivity() {
     if (activityStack.isEmpty) {
-      return new Future(()=>null);
+      return new Future(() => null);
     } else {
       var currentAct = activityStack.last;
-      return currentAct.onClose().then((a){
+      return currentAct.onClose().then((a) {
         activityStack.remove(currentAct);
       });
     }
   }
-  
+
+  Future<Activity> _createAndStartActivity(String appName, String activityName) {
+    Application application = registry.getApplication(appName);
+    Map activityDef = application.getActivityDef(activityName);
+    Activity newActivity = new Activity(application, activityDef);
+    this.activityStack.add(newActivity);
+    return newActivity.onStart();
+  }
+
 }
 
 
@@ -92,7 +93,7 @@ class Registry {
     }
     applications[app.name] = app;
   }
-  
+
   Application getApplication(String appName) {
     return applications[appName];
   }
@@ -124,35 +125,42 @@ class Application {
 
   Application(Map this.appDef) {
     this.name = appDef['name'];
-    
+
   }
-  
+
   Map getActivityDef(String activityName) {
     List<Map> actDefs = appDef["activities"];
-    return actDefs.firstWhere((e) => e['name']==activityName,orElse: ()=>null);
+    return actDefs.firstWhere((e) => e['name'] == activityName, orElse: () => null);
   }
 
 }
 
 class Activity {
-    
-  static int count=0;
-  
+
+  static int count = 0;
+
   Application ownerApp;
   Map activityDef;
   String name;
   String instanceId;
-  
+
   String status;
-  
-  Activity(this.ownerApp,Map this.activityDef) {
+
+  Activity(this.ownerApp, Map this.activityDef) {
     this.name = activityDef['name'];
     this.instanceId = "activity_${Activity.count++}";
   }
-  
-  Future onClose() {
-    return new Future(()=>null);
-  }
-  
-}
 
+  Future<Activity> onStart() {
+    return new Future((){
+      status = "running";
+      return this;
+    });
+  }
+
+  Future onClose() {
+    return new Future(() => null);
+  }
+
+
+}
