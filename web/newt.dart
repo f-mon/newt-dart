@@ -7,7 +7,7 @@ void main() {
 
   test("loadApplication", () {
     var registry = new Registry();
-    new ApplicationLoader(registry).load("http://127.0.0.1:3030/newt-dart/web/sampleApp.json").then(expectAsync((Application app) {
+    new ApplicationLoader(registry).load("http://127.0.0.1:8080/sampleApp.json").then(expectAsync((Application app) {
       expect(app.name, equals("sampleApp"));
       expect(app.getActivityDef("activityOne"), isNotNull);
     }));
@@ -16,30 +16,81 @@ void main() {
 
 
   test("loadStartFirstActivity", () {
-
+    
+    ActivityDisplay display = new ActivityDisplay("activityDisplay");
     Registry registry = new Registry();
     ApplicationLoader apploader = new ApplicationLoader(registry);
-    ActivityManager manager = new ActivityManager(registry);
+    ActivityManager manager = new ActivityManager(registry,display);
 
-    apploader.load("http://127.0.0.1:3030/newt-dart/web/sampleApp.json").then(expectAsync((Application app) {
-      return manager.startRootActivity("sampleApp", "activityOne");
-    })).then(expectAsync((Activity activity) {
-      expect(activity.name, equals("activityOne"));
-      expect(activity.status, equals("running"));
-    }));
+    apploader.load("http://127.0.0.1:8080/sampleApp.json")
+      .then(expectAsync((Application app) {
+        return manager.startRootActivity("sampleApp", "activityOne");
+      }))
+      .then(expectAsync((Activity activity) {
+        expect(activity.name, equals("activityOne"));
+        expect(activity.status, equals("running"));
+      }));
 
   });
+  
+  
+  test("loadStartActivityAndClose", () {
+      
+      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      Registry registry = new Registry();
+      ApplicationLoader apploader = new ApplicationLoader(registry);
+      ActivityManager manager = new ActivityManager(registry,display);
+
+      apploader.load("http://127.0.0.1:8080/sampleApp.json")
+        .then(expectAsync((Application app) {
+          return manager.startRootActivity("sampleApp", "activityOne");
+        }))
+        .then(expectAsync((Activity activity) {
+          expect(activity.name, equals("activityOne"));
+          expect(activity.status, equals("running"));
+        }))
+        .then(expectAsync((Activity activity) {
+          return manager.closeAllActivities();
+        })).then(expectAsync((Activity activity) {
+          expect(manager.activityStack.length,equals(0));
+        }));
+
+    });
 
 
+}
+
+class ActivityDisplay {
+  
+  Element element;
+  
+  ActivityDisplay(String elementId) {
+    this.element = querySelector("#$elementId");
+  }
+  
+  showActive(Activity activity) {
+    this.element.append(activity.view);
+  }
+  
+  paused(Activity activity) {
+    
+  }
+  
+  remove(Activity activity) {
+    activity.view.remove();
+  }
+  
 }
 
 
 class ActivityManager {
 
   Registry registry;
+  ActivityDisplay display;
+  
   List<Activity> activityStack = new List();
 
-  ActivityManager(this.registry);
+  ActivityManager(this.registry,this.display);
 
 
   Future<Activity> startChildActivity(String appName, String activityName) {
@@ -66,7 +117,8 @@ class ActivityManager {
     } else {
       var currentAct = activityStack.last;
       return currentAct.onClose().then((a) {
-        activityStack.remove(currentAct);
+        activityStack.remove(a);
+        display.remove(a);
       });
     }
   }
@@ -76,7 +128,12 @@ class ActivityManager {
     Map activityDef = application.getActivityDef(activityName);
     Activity newActivity = new Activity(application, activityDef);
     this.activityStack.add(newActivity);
-    return newActivity.onStart();
+    return newActivity.onStart().then((Activity act) {
+      display.showActive(act);
+      return act;
+    }).then((Activity act) {
+      return act.waitLoaded();
+    });
   }
 
 }
@@ -145,6 +202,9 @@ class Activity {
   String instanceId;
 
   String status;
+  
+  Completer<Activity> loadingCompleter = new Completer<Activity>();
+  Element iframe;
 
   Activity(this.ownerApp, Map this.activityDef) {
     this.name = activityDef['name'];
@@ -158,9 +218,24 @@ class Activity {
     });
   }
 
-  Future onClose() {
-    return new Future(() => null);
+  Future<Activity> waitLoaded() {
+    return loadingCompleter.future;
+  }
+  
+  Future<Activity> onClose() {
+    return new Future(() => this);
   }
 
+  Element get view {
+    if (iframe==null) {
+      this.iframe = new Element.iframe();
+      this.iframe.attributes['src'] = "http://127.0.0.1:8080/apps/app1.html";
+      this.iframe.onLoad.listen((e){
+        print("loaded");
+        loadingCompleter.complete(this);
+      });
+    }
+    return iframe;
+  }
 
 }
