@@ -2,6 +2,6 @@
  "name":"sampleApp",
  "activities": [{
     "name": "activityOne",
-    "url": "www.pippo.com"
+    "url": "app1.html"
  }] 
 }

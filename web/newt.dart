@@ -5,9 +5,11 @@ import 'package:unittest/unittest.dart';
 
 void main() {
 
+  String appUrl = "http://127.0.0.1:3030/newt-dart/web/apps/sampleApp.json";
+  
   test("loadApplication", () {
     var registry = new Registry();
-    new ApplicationLoader(registry).load("http://127.0.0.1:8080/sampleApp.json").then(expectAsync((Application app) {
+    new ApplicationLoader(registry).load(appUrl).then(expectAsync((Application app) {
       expect(app.name, equals("sampleApp"));
       expect(app.getActivityDef("activityOne"), isNotNull);
     }));
@@ -22,7 +24,7 @@ void main() {
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry,display);
 
-    apploader.load("http://127.0.0.1:8080/sampleApp.json")
+    apploader.load(appUrl)
       .then(expectAsync((Application app) {
         return manager.startRootActivity("sampleApp", "activityOne");
       }))
@@ -41,7 +43,7 @@ void main() {
       ApplicationLoader apploader = new ApplicationLoader(registry);
       ActivityManager manager = new ActivityManager(registry,display);
 
-      apploader.load("http://127.0.0.1:8080/sampleApp.json")
+      apploader.load(appUrl)
         .then(expectAsync((Application app) {
           return manager.startRootActivity("sampleApp", "activityOne");
         }))
@@ -167,7 +169,7 @@ class ApplicationLoader {
   Future<Application> load(String url) {
     return HttpRequest.getString(url).then((json) {
       var appDef = JSON.decode(json);
-      Application app = new Application(appDef);
+      Application app = new Application(url,appDef);
       registry.registerApp(app);
       return app;
     });
@@ -177,10 +179,11 @@ class ApplicationLoader {
 
 class Application {
 
+  String originUrl;
   Map appDef;
   String name;
 
-  Application(Map this.appDef) {
+  Application(String this.originUrl, Map this.appDef) {
     this.name = appDef['name'];
 
   }
@@ -190,6 +193,9 @@ class Application {
     return actDefs.firstWhere((e) => e['name'] == activityName, orElse: () => null);
   }
 
+  String resolveUrl(String path) {
+    return originUrl.substring(0,originUrl.lastIndexOf("/"))+"/"+path;
+  }
 }
 
 class Activity {
@@ -229,7 +235,7 @@ class Activity {
   Element get view {
     if (iframe==null) {
       this.iframe = new Element.iframe();
-      this.iframe.attributes['src'] = "http://127.0.0.1:8080/apps/app1.html";
+      this.iframe.attributes['src'] = ownerApp.resolveUrl(this.activityDef['url']); 
       this.iframe.onLoad.listen((e){
         print("loaded");
         loadingCompleter.complete(this);
