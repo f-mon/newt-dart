@@ -58,6 +58,29 @@ void main() {
         }));
 
     });
+  
+  test("loadStartChildActivity", () {
+      
+      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      Registry registry = new Registry();
+      ApplicationLoader apploader = new ApplicationLoader(registry);
+      ActivityManager manager = new ActivityManager(registry,display);
+
+      apploader.load(appUrl)
+        .then(expectAsync((Application app) {
+          return manager.startRootActivity("sampleApp", "activityOne");
+        }))
+        .then(expectAsync((Activity activity) {
+          expect(manager.activityStack.length,equals(1));
+          return manager.startChildActivity("sampleApp", "activityOne");
+        }))
+        .then(expectAsync((Activity activity) {
+          expect(manager.activityStack.first.status,equals("paused"));
+          expect(manager.activityStack.last.status,equals("running"));
+          expect(manager.activityStack.length,equals(2));
+        }));
+
+    });
 
 
 }
@@ -75,7 +98,11 @@ class ActivityDisplay {
   }
   
   paused(Activity activity) {
-    
+    activity.view.hidden=true;
+  }
+  
+  resumed(Activity activity) {
+    activity.view.hidden=false;
   }
   
   remove(Activity activity) {
@@ -96,7 +123,9 @@ class ActivityManager {
 
 
   Future<Activity> startChildActivity(String appName, String activityName) {
-    return null;
+    return _pauseCurrentActivity().then((a) {
+      return _createAndStartActivity(appName, activityName); 
+    });  
   }
 
   Future<Activity> startRootActivity(String appName, String activityName) {
@@ -125,6 +154,17 @@ class ActivityManager {
     }
   }
 
+  Future<Activity> _pauseCurrentActivity() {
+    if (activityStack.isEmpty) {
+      return new Future(() => null);
+    } else {
+      var currentAct = activityStack.last;
+      return currentAct.onPause().then((a) {
+        display.paused(a);
+      });
+    }
+  }
+  
   Future<Activity> _createAndStartActivity(String appName, String activityName) {
     Application application = registry.getApplication(appName);
     Map activityDef = application.getActivityDef(activityName);
@@ -229,7 +269,17 @@ class Activity {
   }
   
   Future<Activity> onClose() {
-    return new Future(() => this);
+    return new Future((){
+      status = "closed";
+      return this;
+    });
+  }
+  
+  Future<Activity> onPause() {
+    return new Future((){
+      status = "paused";
+      return this;
+    });
   }
 
   Element get view {
@@ -237,7 +287,6 @@ class Activity {
       this.iframe = new Element.iframe();
       this.iframe.attributes['src'] = ownerApp.resolveUrl(this.activityDef['url']); 
       this.iframe.onLoad.listen((e){
-        print("loaded");
         loadingCompleter.complete(this);
       });
     }
