@@ -140,14 +140,22 @@ class ActivityManager {
 
 
   Future<Activity> startChildActivity(String appName, String activityName) {
+    return _startChildActivity(appName, activityName, false);
+  }
+  
+  Future<Activity> startChildPopupActivity(String appName, String activityName) {
+    return _startChildActivity(appName, activityName, true);
+  }
+  
+  Future<Activity> _startChildActivity(String appName, String activityName,bool popup) {
     return _pauseCurrentActivity().then((a) {
-      return _createAndStartActivity(appName, activityName);
+      return _createAndStartActivity(appName, activityName, a);
     });
   }
 
   Future<Activity> startRootActivity(String appName, String activityName) {
     closeAllActivities();
-    return _createAndStartActivity(appName, activityName);
+    return _createAndStartActivity(appName, activityName, null);
   }
 
   Future closeAllActivities() {
@@ -196,10 +204,10 @@ class ActivityManager {
     }
   }
 
-  Future<Activity> _createAndStartActivity(String appName, String activityName) {
+  Future<Activity> _createAndStartActivity(String appName, String activityName, Activity parentActivity) {
     Application application = registry.getApplication(appName);
     Map activityDef = application.getActivityDef(activityName);
-    Activity newActivity = new Activity(application, activityDef);
+    Activity newActivity = new Activity(application, activityDef, parentActivity);
     this.activityStack.add(newActivity);
     return newActivity.onStart().then((Activity act) {
       display.showActive(act);
@@ -274,16 +282,17 @@ class Activity {
   static int count = 0;
 
   Application ownerApp;
+  Activity parentActivity;
   Map activityDef;
   String name;
   String instanceId;
 
-  String status;
+  String status = "initial";
 
   Completer<Activity> loadingCompleter = new Completer<Activity>();
   Element iframe;
 
-  Activity(this.ownerApp, Map this.activityDef) {
+  Activity(this.ownerApp, Map this.activityDef,Activity this.parentActivity) {
     this.name = activityDef['name'];
     this.instanceId = "activity_${Activity.count++}";
   }
