@@ -98,18 +98,64 @@ void main() {
     }));
 
   });
+  
+  test("startChildPopupActivity", () {
+
+      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      Registry registry = new Registry();
+      ApplicationLoader apploader = new ApplicationLoader(registry);
+      ActivityManager manager = new ActivityManager(registry, display);
+
+      apploader.load(appUrl).then(expectAsync((Application app) {
+        return manager.startRootActivity("sampleApp", "activityOne");
+      })).then(expectAsync((Activity activity) {
+        expect(manager.activityStack.length, equals(1));
+        return manager.startChildPopupActivity("sampleApp", "activityOne");
+      })).then(expectAsync((Activity activity) {
+        expect(activity.activityDisplay, isNot(equals(display)));
+        expect(activity.activityDisplay.parentDisplay, equals(display));
+      }));
+
+    });
+  
+  test("startChildPopupActivityAndClosePopup", () {
+
+      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      Registry registry = new Registry();
+      ApplicationLoader apploader = new ApplicationLoader(registry);
+      ActivityManager manager = new ActivityManager(registry, display);
+
+      apploader.load(appUrl).then(expectAsync((Application app) {
+        return manager.startRootActivity("sampleApp", "activityOne");
+      })).then(expectAsync((Activity activity) {
+        expect(manager.activityStack.length, equals(1));
+        return manager.startChildPopupActivity("sampleApp", "activityOne");
+      })).then(expectAsync((Activity activity) {
+        expect(activity.activityDisplay, isNot(equals(display)));
+        expect(activity.activityDisplay.parentDisplay, equals(display));
+      })).then(expectAsync((Activity activity) {
+        return manager.closeActivity();
+      })).then(expectAsync((Activity activity) {
+        expect(manager.activityStack.last.activityDisplay, equals(display));
+      }));
+
+    });
 
 
 }
 
 class ActivityDisplay {
 
+  ActivityDisplay parentDisplay;
   Element element;
 
   ActivityDisplay(String elementId) {
     this.element = querySelector("#$elementId");
   }
-
+  ActivityDisplay.popupDisplay(ActivityDisplay this.parentDisplay) {
+    this.element = new Element.div(); 
+  }
+  
   showActive(Activity activity) {
     this.element.append(activity.view);
   }
@@ -126,17 +172,32 @@ class ActivityDisplay {
     activity.view.remove();
   }
 
+  ActivityDisplay createPopupDisplay() {
+    //TODO put layer on element
+    ActivityDisplay popupDisplay = new ActivityDisplay.popupDisplay(this);
+    this.element.append(popupDisplay.element);
+    return popupDisplay;
+  }
+  
+  void destroyDisplayAndResumeParent() {
+    this.element.remove();
+  }
+  
+  bool isRootDisplay() {
+    return this.parentDisplay==null;
+  }
+  
 }
 
 
 class ActivityManager {
 
   Registry registry;
-  ActivityDisplay display;
+  ActivityDisplay rootDisplay;
 
   List<Activity> activityStack = new List();
 
-  ActivityManager(this.registry, this.display);
+  ActivityManager(this.registry, this.rootDisplay);
 
 
   Future<Activity> startChildActivity(String appName, String activityName) {
@@ -149,13 +210,13 @@ class ActivityManager {
   
   Future<Activity> _startChildActivity(String appName, String activityName,bool popup) {
     return _pauseCurrentActivity().then((a) {
-      return _createAndStartActivity(appName, activityName, a);
+      return _createAndStartActivity(appName, activityName, a, popup);
     });
   }
 
   Future<Activity> startRootActivity(String appName, String activityName) {
     closeAllActivities();
-    return _createAndStartActivity(appName, activityName, null);
+    return _createAndStartActivity(appName, activityName, null, false);
   }
 
   Future closeAllActivities() {
@@ -174,7 +235,10 @@ class ActivityManager {
       var currentAct = activityStack.last;
       return currentAct.onClose().then((a) {
         activityStack.remove(a);
-        display.remove(a);
+        a.activityDisplay.remove(a);
+        if (a.isDisplayOwner) {
+          a.activityDisplay.destroyDisplayAndResumeParent();
+        }
         return _resumeActivity();
       });
     }
@@ -186,7 +250,7 @@ class ActivityManager {
     } else {
       var currentAct = activityStack.last;
       return currentAct.onResume().then((a) {
-        display.resumed(a);
+        a.activityDisplay.resumed(a);
         return a;
       });
     }
@@ -198,22 +262,33 @@ class ActivityManager {
     } else {
       var currentAct = activityStack.last;
       return currentAct.onPause().then((a) {
-        display.paused(a);
+        a.activityDisplay.paused(a);
         return a;
       });
     }
   }
 
-  Future<Activity> _createAndStartActivity(String appName, String activityName, Activity parentActivity) {
+  Future<Activity> _createAndStartActivity(String appName, String activityName, Activity parentActivity, bool popup) {
+    
     Application application = registry.getApplication(appName);
     Map activityDef = application.getActivityDef(activityName);
     Activity newActivity = new Activity(application, activityDef, parentActivity);
+    ActivityDisplay parentDisplay = (parentActivity!=null)?parentActivity.activityDisplay:this.rootDisplay;
+    
+    if (popup) {      
+      newActivity.activityDisplay = parentDisplay.createPopupDisplay();
+      newActivity.isDisplayOwner = true;
+    } else {      
+      newActivity.activityDisplay = parentDisplay;
+    }
+    
     this.activityStack.add(newActivity);
-    return newActivity.onStart().then((Activity act) {
-      display.showActive(act);
-      return act;
-    }).then((Activity act) {
-      return act.waitLoaded();
+    
+    return newActivity.onStart().then((Activity a) {
+      a.activityDisplay.showActive(a);
+      return a;
+    }).then((Activity a) {
+      return a.waitLoaded();
     });
   }
 
@@ -283,6 +358,10 @@ class Activity {
 
   Application ownerApp;
   Activity parentActivity;
+  
+  ActivityDisplay activityDisplay;
+  bool isDisplayOwner = false;
+  
   Map activityDef;
   String name;
   String instanceId;
