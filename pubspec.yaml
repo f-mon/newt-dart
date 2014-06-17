@@ -2,4 +2,9 @@ name: newt
 description: A sample web application
 dependencies:
   browser: any
-  unittest: any
+  unittest: any  
+  angular: any
+  shadow_dom: any
+  event_bus: any
+transformers:
+- angular

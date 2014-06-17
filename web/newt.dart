@@ -2,14 +2,86 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:convert';
 import 'package:unittest/unittest.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:angular/angular.dart';
+import 'package:angular/application_factory.dart';
+
+
 
 void main() {
+  
+  EventBus eventBus = new EventBus();
+  ActivityDisplay display = new ActivityDisplay("activityDisplay");
+  Registry registry = new Registry(eventBus);
+  ApplicationLoader apploader = new ApplicationLoader(registry);
+  ActivityManager manager = new ActivityManager(registry, display);
+ 
+  String appUrl = "http://127.0.0.1:3030/newt-dart/web/apps/sampleApp.json";
+  apploader.load(appUrl).then((app){    
+     print("load");
+  });
+  
+  Injector injector = applicationFactory()
+  .addModule(
+    new Module()
+      ..bind(EventBus,toValue: eventBus)
+      ..bind(ApplicationLoader,toValue: apploader)
+      ..bind(ActivityManager,toValue: manager)
+      ..bind(NewtToolbarController)
+      ..bind(NewtMenuController)
+      ..bind(NewtDisplayController)
+  )
+  .run();
+  
+}
+
+
+@Controller(
+    selector: '[newt-toolbar]',
+    publishAs: 'ctrl')
+class NewtToolbarController {
+  ActivityManager manager;
+  
+  NewtToolbarController(ActivityManager this.manager);
+  
+}
+
+@Controller(
+    selector: '[newt-menu]',
+    publishAs: 'ctrl')
+class NewtMenuController {
+  
+  List<Application> installedApp;
+  EventBus eventBus;
+  
+  
+  NewtMenuController(EventBus this.eventBus) {
+    installedApp = new List();
+    eventBus.on(installedAppEvent).listen((app) {
+      installedApp.add(app);
+      print("add");
+    });
+  }
+  
+}
+
+@Controller(
+    selector: '[newt-display]',
+    publishAs: 'ctrl')
+class NewtDisplayController {
+  ActivityManager manager;
+  
+  NewtDisplayController(ActivityManager this.manager);
+}
+
+void testmain() {
 
   String appUrl = "http://127.0.0.1:3030/newt-dart/web/apps/sampleApp.json";
 
   test("loadApplication", () {
     
-    var registry = new Registry();
+    EventBus eventBus = new EventBus();
+    var registry = new Registry(eventBus);
     new ApplicationLoader(registry).load(appUrl).then(expectAsync((Application app) {
       expect(app.name, equals("sampleApp"));
       expect(app.getActivityDef("activityOne"), isNotNull);
@@ -20,7 +92,8 @@ void main() {
   test("loadStartFirstActivity", () {
 
     ActivityDisplay display = new ActivityDisplay("activityDisplay");
-    Registry registry = new Registry();
+    EventBus eventBus = new EventBus();
+    Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry, display);
 
@@ -37,7 +110,8 @@ void main() {
   test("loadStartActivityAndClose", () {
 
     ActivityDisplay display = new ActivityDisplay("activityDisplay");
-    Registry registry = new Registry();
+    EventBus eventBus = new EventBus();
+    Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry, display);
 
@@ -57,7 +131,8 @@ void main() {
   test("loadStartChildActivity", () {
 
     ActivityDisplay display = new ActivityDisplay("activityDisplay");
-    Registry registry = new Registry();
+    EventBus eventBus = new EventBus();
+    Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry, display);
 
@@ -78,7 +153,8 @@ void main() {
   test("loadStartChildActivityAndClose", () {
 
     ActivityDisplay display = new ActivityDisplay("activityDisplay");
-    Registry registry = new Registry();
+    EventBus eventBus = new EventBus();
+    Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
     ActivityManager manager = new ActivityManager(registry, display);
 
@@ -102,7 +178,8 @@ void main() {
   test("startChildPopupActivity", () {
 
       ActivityDisplay display = new ActivityDisplay("activityDisplay");
-      Registry registry = new Registry();
+      EventBus eventBus = new EventBus();
+      Registry registry = new Registry(eventBus);
       ApplicationLoader apploader = new ApplicationLoader(registry);
       ActivityManager manager = new ActivityManager(registry, display);
 
@@ -121,7 +198,8 @@ void main() {
   test("startChildPopupActivityAndClosePopup", () {
 
       ActivityDisplay display = new ActivityDisplay("activityDisplay");
-      Registry registry = new Registry();
+      EventBus eventBus = new EventBus();
+      Registry registry = new Registry(eventBus);
       ApplicationLoader apploader = new ApplicationLoader(registry);
       ActivityManager manager = new ActivityManager(registry, display);
 
@@ -294,17 +372,21 @@ class ActivityManager {
 
 }
 
-
+final EventType<Application> installedAppEvent = new EventType<Application>();
 
 class Registry {
-
+  
+  EventBus eventBus;
   Map<String, Application> applications = new Map();
 
+  Registry(EventBus this.eventBus);
+  
   registerApp(Application app) {
     if (applications.containsKey(app.name)) {
       throw new Exception("Application with same name (${app.name}) already registered!");
     }
     applications[app.name] = app;
+    eventBus.fire(installedAppEvent,app);
   }
 
   Application getApplication(String appName) {

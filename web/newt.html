@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 
-<html>
+<html ng-app>
   <head>
     <meta charset="utf-8">
     <title>Newt</title>
     <link rel="stylesheet" href="newt.css">
   </head>
   <body>
-    <h3>Newt tests</h3>
     
-    
-    <div id="activityDisplay">
+    <div newt-toolbar>
+      toolbar
     </div>
-
+    <div newt-menu>
+       <ul>
+          <li ng-repeat="value in ctrl.installedApp">
+          {{value.name}}
+          </li>
+       </ul>
+    </div>
+    <div newt-display>
+      <div id="activityDisplay">
+      </div>
+    </div>
+    
+    <script src="packages/shadow_dom/shadow_dom.min.js"></script>
     <script type="application/dart" src="newt.dart"></script>
     <script src="packages/browser/dart.js"></script>
   </body>
