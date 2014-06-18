@@ -2,6 +2,11 @@
  "name":"sampleApp",
  "activities": [{
     "name": "activityOne",
+    "label": "Attività Uno",
     "url": "app1.html"
+ },{
+    "name": "activityTwo",
+    "label": "Attività Due",
+    "url": "app2.html"
  }] 
 }

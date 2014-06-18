@@ -10,21 +10,22 @@
     
     <div newt-toolbar>
       toolbar
+      <div ng-click="ctrl.closeActivity()"> Chiudi </div>
     </div>
+    
     <div newt-menu>
        <ul>
-          <li ng-repeat="value in ctrl.installedApp">
-          {{value.name}}
+          <li ng-repeat="value in ctrl.menuItems" ng-click="ctrl.select(value)">
+          {{value.label}}
           </li>
        </ul>
     </div>
+    
     <div newt-display>
-      <div id="activityDisplay">
-      </div>
     </div>
     
     <script src="packages/shadow_dom/shadow_dom.min.js"></script>
-    <script type="application/dart" src="newt.dart"></script>
+    <script type="application/dart" src="main.dart"></script>
     <script src="packages/browser/dart.js"></script>
   </body>
 </html>
