@@ -5,9 +5,24 @@
   	<meta charset="utf-8">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>app1</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://127.0.0.1:3030/newt-dart/web/api/newtApi.js"></script>
   </head>
- 
   <body>   
     <h1>Activity 1</h1>
+    <button id="sentMsgBtn">Send Message</button>
+    <button id="openChildBtn">Open Child</button>
+    <script type="text/javascript">
+    $(function() {
+      $('#sentMsgBtn').click(function(){        
+        newt.sendMessage('dddd');
+      });
+      $('#openChildBtn').click(function(){        
+        newt.newActivityIntent('sampleApp','activityOne').start().then(function(){
+          alert("started");
+        });
+      });
+    });
+    </script>
   </body>
 </html>

@@ -7,10 +7,12 @@ class ActivityManager {
   ActivityDisplay rootDisplay;
 
   List<Activity> activityStack = new List();
+  MessagesRouter messagesRouter;
 
-  ActivityManager(this.registry, this.rootDisplay);
-
-
+  ActivityManager(this.registry, this.rootDisplay) {
+    messagesRouter = new MessagesRouter();
+  }
+  
   Future<Activity> startChildActivity(String appName, String activityName) {
     return _startChildActivity(appName, activityName, false);
   }
@@ -84,7 +86,7 @@ class ActivityManager {
     
     Application application = registry.getApplication(appName);
     Map activityDef = application.getActivityDef(activityName);
-    Activity newActivity = new Activity(application, activityDef, parentActivity);
+    Activity newActivity = new Activity(application, activityDef, parentActivity, this);
     ActivityDisplay parentDisplay = (parentActivity!=null)?parentActivity.activityDisplay:this.rootDisplay;
     
     if (popup) {      
