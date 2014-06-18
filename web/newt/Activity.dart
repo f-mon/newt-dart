@@ -18,7 +18,7 @@ class Activity {
   String status = "initial";
 
   Completer<Activity> loadingCompleter = new Completer<Activity>();
-  Element iframe;
+  IFrameElement iframe;
 
   Activity(this.ownerApp, Map this.activityDef,Activity this.parentActivity) {
     this.name = activityDef['name'];
@@ -58,14 +58,24 @@ class Activity {
     }
 
   Element get view {
-    if (iframe == null) {
-      this.iframe = new Element.iframe();
-      this.iframe.attributes['src'] = ownerApp.resolveUrl(this.activityDef['url']);
-      this.iframe.onLoad.listen((e) {
-        loadingCompleter.complete(this);
-      });
+    if (iframe == null) {      
+      this.iframe = this._createIframe();
     }
     return iframe;
+  }
+  
+  IFrameElement _createIframe() {
+    IFrameElement element = new Element.iframe();
+    element.classes.add('activityFrame');
+    element.attributes['src'] = ownerApp.resolveUrl(this.activityDef['url']);
+    element.onLoad.listen((e) {
+      element.contentWindow.postMessage({
+        'eventName':'initialize',
+        'instanceId':instanceId
+      },"*");
+      loadingCompleter.complete(this);
+    });
+    return element;
   }
 
 }

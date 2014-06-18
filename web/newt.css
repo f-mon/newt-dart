@@ -2,23 +2,34 @@
 body {
   background-color: #F8F8F8;
   font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  font-weight: normal;
-  line-height: 1.2em;
-  margin: 15px;
-}
-
-h3, p {
-  color: #333;
 }
 
 .newtRootActivityDisplay {
+  position: absolute;
+  top: 100px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
   width: 100%;
-  height: 400px;
-  position: relative;
-  border: 1px solid #ccc;
   background-color: #fff;
 }
+.activityDisplay {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border: 0px;
+}
+.activityFrame {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
 
 .ng-hide, 
 .ng-show {

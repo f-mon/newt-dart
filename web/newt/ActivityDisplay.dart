@@ -7,10 +7,12 @@ class ActivityDisplay {
   Element element;
 
   ActivityDisplay() {
-    this.element = new Element.div();
+    this.element = new Element.div()
+      ..classes.add('activityDisplay');
   }
   ActivityDisplay.popupDisplay(ActivityDisplay this.parentDisplay) {
-    this.element = new Element.div(); 
+    this.element = new Element.div()
+       ..classes.add('activityDisplay popupDisplay'); 
   }
   
   showActive(Activity activity) {

@@ -11,4 +11,5 @@ part 'Registry.dart';
 part 'ApplicationLoader.dart';
 part 'Application.dart';
 part 'Activity.dart';
+part 'MessagesRouter.dart';
 

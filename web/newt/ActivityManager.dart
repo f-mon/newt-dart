@@ -7,10 +7,12 @@ class ActivityManager {
   ActivityDisplay rootDisplay;
 
   List<Activity> activityStack = new List();
+  MessagesRouter messagesRouter;
 
-  ActivityManager(this.registry, this.rootDisplay);
-
-
+  ActivityManager(this.registry, this.rootDisplay) {
+    messagesRouter = new MessagesRouter(this);
+  }
+  
   Future<Activity> startChildActivity(String appName, String activityName) {
     return _startChildActivity(appName, activityName, false);
   }
