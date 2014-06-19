@@ -1,4 +1,3 @@
-
 var newt = (function() {
   
   var instanceId=null;

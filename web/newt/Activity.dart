@@ -76,6 +76,11 @@ class Activity {
           this.channel = ch;
           this.loadingCompleter.complete(this);
       });
+      element.contentWindow.postMessage({
+        'eventName':'initialize',
+        'instanceId':instanceId
+      },"*");
+      loadingCompleter.complete(this);
     });
     return element;
   }

@@ -22,7 +22,7 @@ void main() {
 
   test("loadStartFirstActivity", () {
 
-    ActivityDisplay display = new ActivityDisplay("activityDisplay");
+    ActivityDisplay display = new ActivityDisplay();
     EventBus eventBus = new EventBus();
     Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
@@ -40,7 +40,7 @@ void main() {
 
   test("loadStartActivityAndClose", () {
 
-    ActivityDisplay display = new ActivityDisplay("activityDisplay");
+    ActivityDisplay display = new ActivityDisplay();
     EventBus eventBus = new EventBus();
     Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
@@ -61,7 +61,7 @@ void main() {
 
   test("loadStartChildActivity", () {
 
-    ActivityDisplay display = new ActivityDisplay("activityDisplay");
+    ActivityDisplay display = new ActivityDisplay();
     EventBus eventBus = new EventBus();
     Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
@@ -83,7 +83,7 @@ void main() {
 
   test("loadStartChildActivityAndClose", () {
 
-    ActivityDisplay display = new ActivityDisplay("activityDisplay");
+    ActivityDisplay display = new ActivityDisplay();
     EventBus eventBus = new EventBus();
     Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
@@ -108,7 +108,7 @@ void main() {
   
   test("startChildPopupActivity", () {
 
-      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      ActivityDisplay display = new ActivityDisplay();
       EventBus eventBus = new EventBus();
       Registry registry = new Registry(eventBus);
       ApplicationLoader apploader = new ApplicationLoader(registry);
@@ -128,7 +128,7 @@ void main() {
   
   test("startChildPopupActivityAndClosePopup", () {
 
-      ActivityDisplay display = new ActivityDisplay("activityDisplay");
+      ActivityDisplay display = new ActivityDisplay();
       EventBus eventBus = new EventBus();
       Registry registry = new Registry(eventBus);
       ApplicationLoader apploader = new ApplicationLoader(registry);
