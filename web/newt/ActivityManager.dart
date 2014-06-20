@@ -8,9 +8,11 @@ class ActivityManager {
 
   List<Activity> activityStack = new List();
   MessagesRouter messagesRouter;
+  IntentExecuter intentExecuter;
 
   ActivityManager(this.registry, this.rootDisplay) {
     messagesRouter = new MessagesRouter();
+    intentExecuter = new IntentExecuter(this);
   }
   
   Future<Activity> startChildActivity(String appName, String activityName) {

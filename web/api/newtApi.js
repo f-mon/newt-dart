@@ -3,6 +3,7 @@ var newt = (function() {
   var instanceId=null;
   var waitingsReply = {};
   
+  //funzione base per l'inoltro di un messaggio al container
   var sendMessageToNewt = function(data,replayHandler) {
 		var messageId = "message_"+((new Date()).getTime());
 		data['fromActivity'] = instanceId;
@@ -15,18 +16,40 @@ var newt = (function() {
 		parent.postMessage(data,"*");
   };
   
+  var onInitialize = function(e) {
+    instanceId = e.data.instanceId;
+    sendMessageToNewt({
+       commandName: 'initialized'
+    });
+  };
+  
+  var onReplyMessage = function(e) {
+    var replyTo = e.data.replyTo;
+    if (waitingsReply[replyTo]) {
+       waitingsReply[replyTo].callback(e);
+       delete waitingsReply[replyTo];
+    }
+  };
+  
+  var onCommandMessage = function(e) {
+    //TODO
+  };
+  
+  //funzione invocata quando arriva un messaggio dal container
   var onMessage = function(e) {
-    if (e.data && 'initialize'==e.data.commandName) {
-      instanceId = e.data.instanceId;
-	  sendMessageToNewt({
-        commandName: 'initialized'
-      });
+    if (e.data) {
+      if ('initialize'==e.data.commandName) {
+        onInitialize(e);
+      } else if (e.data.replyTo) {
+        onReplyMessage(e);
+      } else {
+        onCommandMessage(e);
+      }
     }
   };
   
   window.addEventListener('message',onMessage,false);
 
-  
   var intentExecutor = {
   
       executeIntent: function(intent,options) {
@@ -50,15 +73,21 @@ var newt = (function() {
           intent: intent,
           options: options
         },function(result) {
-          deferred.resolve(result.data.result);
+          deferred.resolve(result.data);
         });
         return deferred;
       }
   };
 
   var IntentType = {
-    START_ACTIVITY : 0,
-    START_INTENT : 2
+    START_ACTIVITY : 'START_ACTIVITY',
+    START_INTENT : 'START_INTENT'
+  };
+  
+  var StartMode = {
+    CHILD : 'CHILD',
+    ROOT : 'ROOT',
+    CHILD_POPUP : 'CHILD_POPUP'
   };
 
   var Intent = function(type) {
@@ -66,7 +95,7 @@ var newt = (function() {
     this.activity = null;
     this.app = null;
     this.parameters = {};
-    this.startMode = "CHILD";
+    this.startMode = StartMode.CHILD;
 
     this.start = function(options) {
       return intentExecutor.executeIntent(this,options);

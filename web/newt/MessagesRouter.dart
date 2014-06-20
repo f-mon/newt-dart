@@ -31,33 +31,3 @@ class MessagesRouter {
   }
   
 }
-
-class Message {
-  
-  Map<String,Object> data;
-
-  Message(Map this.data);
-  
-  Message.create() {
-    this.data = new Map();
-  }
-  
-  String get sender => data['fromActivity'];
-  void set sender(String s) {
-    data['fromActivity'] = s;
-  }
-  
-  String get commandName => data['commandName'];
-  void set commandName(String s) {
-    data['commandName'] = s;
-  }
-  
-  String get messageId => data['messageId'];
-  void set messageId(String s) {
-    data['messageId'] = s;
-  }
-  
-  void reply(Message message) {
-  }
-
-}
