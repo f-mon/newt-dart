@@ -50,14 +50,19 @@ class IntentExecuter {
     }
   }
   
-  Future executeStartActivityIntent(Intent intent) {
-     //todo qui bisogna ritornare il future sul valore di chiusura dell'activity non sull'apertura?..
+  Future<Object> executeStartActivityIntent(Intent intent) {
     if (intent.startMode==CHILD) { 
-      return activitymanager.startChildActivity(intent.appName, intent.activityName);
+      return activitymanager.startChildActivity(intent.appName, intent.activityName).then((activity) {
+        return activity.waitCompleted();
+      });
     } else if (intent.startMode==CHILD_POPUP) {
-      return activitymanager.startChildPopupActivity(intent.appName, intent.activityName);
+      return activitymanager.startChildPopupActivity(intent.appName, intent.activityName).then((activity) {
+        return activity.waitCompleted();
+      });
     } else if (intent.startMode==ROOT) {
-      return activitymanager.startRootActivity(intent.appName, intent.activityName);
+      return activitymanager.startRootActivity(intent.appName, intent.activityName).then((activity) {
+        return activity.waitCompleted();
+      });
     } else {
       throw new Exception("Valore di startMode non supportato");
     }

@@ -21,6 +21,9 @@ class Activity {
 
   Completer<Activity> loadingCompleter = new Completer<Activity>();
   IFrameElement iframe;
+  
+  Completer<Object> activityCompleter = new Completer<Object>();
+  Object activityReturnValue;
 
   Activity(this.ownerApp, Map this.activityDef,Activity this.parentActivity, ActivityManager this.activityManager) {
     this.name = activityDef['name'];
@@ -37,11 +40,16 @@ class Activity {
   Future<Activity> waitLoaded() {
     return loadingCompleter.future;
   }
+  
+  Future<Object> waitCompleted() {
+    return activityCompleter.future;
+  }
 
   Future<Activity> onClose() {
     return new Future(() {
       channel.disconnect();
       status = "closed";
+      activityCompleter.complete(this.activityReturnValue);
       return this;
     });
   }
@@ -67,6 +75,8 @@ class Activity {
     return iframe;
   }
   
+  bool get isCurrentActivity => this.activityManager.activityStack.last == this;
+  
   IFrameElement _createIframe() {
     IFrameElement element = new Element.iframe();
     element.classes.add('activityFrame');
@@ -83,14 +93,25 @@ class Activity {
   Future<ActivityChannel> _initChannel() {
     ActivityChannel ch = new ActivityChannel(this,activityManager.messagesRouter);
     ch.onCommand('executeIntent',_onExecuteIntent);
+    ch.onCommand('closeActivity',_onCloseActivityCommand);
     return ch.init();
   }
   
   void _onExecuteIntent(Message msg) {    
     var intent = new Intent.fromMessage(msg);
-    this.activityManager.intentExecuter.execute(intent).then((r){      
-      msg.reply(new Message.create());
+    this.activityManager.intentExecuter.execute(intent).then((r){
+      msg.reply(new Message.create()
+      ..data['returnValue']=r);
     });
+  }
+  
+  void _onCloseActivityCommand(Message msg) {
+    if (this.isCurrentActivity) {
+      this.activityReturnValue = msg.data['returnValue'];
+      this.activityManager.closeActivity();
+    } else {
+      throw new Exception("Cannot close this Activity (${ownerApp.name}.${name} ${instanceId}), it's note the current one."); 
+    }
   }
   
 }

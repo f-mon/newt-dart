@@ -10,20 +10,25 @@
   </head>
   <body>   
     <h1>Activity 1</h1>
-    <button id="sentMsgBtn">Send Message</button>
+    
+    <input id="closeVal" type="text" value="retVal"></input>
+    
     <button id="openChildBtn">Open Child</button>
+    <button id="closeBtn">Close with Return value</button>
+    
+    <div id="msgs"></div>
+    
     <script type="text/javascript">
     $(function() {
-      $('#sentMsgBtn').click(function(){        
-        newt.sendMessage('dddd');
-      });
       $('#openChildBtn').click(function(){        
-        newt.newActivityIntent('sampleApp','activityOne').start().then(function(){
-          alert("started");
+        newt.newActivityIntent('sampleApp','activityOne').start().then(function(retval){
+          $("#msgs").html("child activity returned: "+retval);
         });
+      });
+      $('#closeBtn').click(function(){        
+        newt.close($('#closeVal').val());
       });
     });
     </script>
-    <button onclick="newt.sendMessage('dddd');">Send Message</button>
   </body>
 </html>

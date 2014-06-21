@@ -73,7 +73,7 @@ var newt = (function() {
           intent: intent,
           options: options
         },function(result) {
-          deferred.resolve(result.data);
+          deferred.resolve(result.data['returnValue']);
         });
         return deferred;
       }
@@ -117,6 +117,13 @@ var newt = (function() {
   		i.parameters = parameters;
   		i.app = appId;
   		return i;
+	  },
+	  
+	  close : function(closeVal) {
+	  	sendMessageToNewt({
+          commandName : 'closeActivity',
+          returnValue: closeVal
+        });
 	  }
   
   };
