@@ -3,29 +3,69 @@
 <html ng-app>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     <title>Newt</title>
+    
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+
     <link rel="stylesheet" href="newt.css">
   </head>
   <body>
     
-    <div newt-toolbar>
-      toolbar
-      <div ng-click="ctrl.closeActivity()"> Chiudi </div>
+    <div newt-toolbar class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Newt</a>
+        </div>
+        
+        
+        <div class="collapse navbar-collapse">
+        
+          <ul newt-menu class="nav navbar-nav navbar-left">
+              <li ng-repeat="value in ctrl.menuItems">
+                <a href="#" ng-click="ctrl.select(value)">{{value.label}}</a>
+              </li>
+          </ul>
+          
+          <ul class="nav navbar-nav navbar-right">
+
+            <li ng-show="!ctrl.manager.activityStack.isEmpty">
+              <a href="#" class="btn-warning"
+                ng-click="ctrl.closeActivity()">
+                <i class="fa fa-times"></i>
+              </a>
+            </li>
+        </ul>
+        
+          
+        </div><!--/.nav-collapse -->
+        
+      </div>
     </div>
-    
-    <div newt-menu>
-       <ul>
-          <li ng-repeat="value in ctrl.menuItems" ng-click="ctrl.select(value)">
-          {{value.label}}
-          </li>
-       </ul>
-    </div>
-    
+
     <div newt-display>
     </div>
+    
     
     <script src="packages/shadow_dom/shadow_dom.min.js"></script>
     <script type="application/dart" src="main.dart"></script>
     <script src="packages/browser/dart.js"></script>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
   </body>
 </html>
