@@ -26,7 +26,7 @@ void main() {
     EventBus eventBus = new EventBus();
     Registry registry = new Registry(eventBus);
     ApplicationLoader apploader = new ApplicationLoader(registry);
-    ActivityManager manager = new ActivityManager(registry, display);
+    ActivityManager manager = new ActivityManager(eventBus,registry, display);
 
     apploader.load(appUrl).then(expectAsync((Application app) {
       return manager.startRootActivity("sampleApp", "activityOne");

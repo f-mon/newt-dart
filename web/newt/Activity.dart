@@ -75,6 +75,10 @@ class Activity {
     return iframe;
   }
   
+  String get label {
+    return activityDef['label'];
+  }
+  
   bool get isCurrentActivity => this.activityManager.activityStack.last == this;
   
   IFrameElement _createIframe() {

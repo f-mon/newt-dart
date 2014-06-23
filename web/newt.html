@@ -34,6 +34,29 @@
         
         <div class="collapse navbar-collapse">
         
+            <ul class="nav navbar-nav navbar-left">
+            
+                <li ng-hide="ctrl.manager.activityStack.isEmpty" class="navbar-text">
+                  <span ng-click="ctrl.manager.closeAllActivities()">
+                    <i class="fa fa-home pointer"></i>
+                  </span>
+                </li>
+                
+                <li class="navbar-text" style="margin-left: 0px;">
+                  <span ng-show="ctrl.manager.activityStack.length > ctrl.maxBreadcrumbSize">
+                    <i class="fa fa-caret-right"></i>
+                    ...{{ctrl.manager.activityStack.length - ctrl.maxBreadcrumbSize}} attività...
+                  </span>
+                  <span
+                    ng-repeat="item in ctrl.manager.activityStack | limitTo:-ctrl.maxBreadcrumbSize track by $index">
+                    <i class="fa fa-caret-right"></i>
+                    <i class="fa fa-external-link" ng-show="item.isDisplayOwner"></i>
+                    {{item.label}} &nbsp;
+                  </span>
+                </li>
+                
+          </ul>
+        
           <ul newt-menu class="nav navbar-nav navbar-left">
               <li ng-repeat="value in ctrl.menuItems">
                 <a href="#" ng-click="ctrl.select(value)">{{value.label}}</a>

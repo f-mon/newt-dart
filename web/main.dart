@@ -14,7 +14,7 @@ void main() {
   ActivityDisplay display = new ActivityDisplay();
   Registry registry = new Registry(eventBus);
   ApplicationLoader apploader = new ApplicationLoader(registry);
-  ActivityManager manager = new ActivityManager(registry, display);
+  ActivityManager manager = new ActivityManager(eventBus,registry, display);
  
   String appUrl = "http://127.0.0.1:3030/newt-dart/web/apps/sampleApp.json";
   apploader.load(appUrl);

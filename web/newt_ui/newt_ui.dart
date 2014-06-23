@@ -11,12 +11,25 @@ import 'dart:html';
     publishAs: 'ctrl')
 class NewtToolbarController {
   
+
+  EventBus eventBus;
   ActivityManager manager;
   
-  NewtToolbarController(ActivityManager this.manager);
+  NewtToolbarController(Scope scope, ActivityManager this.manager, EventBus this.eventBus) {
+    eventBus.on(openedActivityEvent).listen((Activity a) {
+      scope.apply();
+    });
+    eventBus.on(closedActivityEvent).listen((Activity a) {
+      scope.apply();
+    });
+  }
   
   closeActivity() {
     manager.closeActivity();
+  }
+  
+  int get maxBreadcrumbSize {
+    return 3;
   }
   
 }

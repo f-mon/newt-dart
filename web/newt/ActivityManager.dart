@@ -1,8 +1,12 @@
 part of newt;
 
 
+final EventType<Activity> openedActivityEvent = new EventType<Activity>();
+final EventType<Activity> closedActivityEvent = new EventType<Activity>();
+
 class ActivityManager {
 
+  EventBus eventBus;
   Registry registry;
   ActivityDisplay rootDisplay;
 
@@ -10,7 +14,7 @@ class ActivityManager {
   MessagesRouter messagesRouter;
   IntentExecuter intentExecuter;
 
-  ActivityManager(this.registry, this.rootDisplay) {
+  ActivityManager(this.eventBus, this.registry, this.rootDisplay) {
     messagesRouter = new MessagesRouter();
     intentExecuter = new IntentExecuter(this);
   }
@@ -55,6 +59,7 @@ class ActivityManager {
         if (a.isDisplayOwner) {
           a.activityDisplay.destroyDisplayAndResumeParent();
         }
+        eventBus.fire(closedActivityEvent,a);
         return _resumeActivity();
       });
     }
@@ -102,6 +107,7 @@ class ActivityManager {
     
     return newActivity.onStart().then((Activity a) {
       a.activityDisplay.showActive(a);
+      eventBus.fire(openedActivityEvent,a);
       return a;
     }).then((Activity a) {
       return a.waitLoaded();
