@@ -6,6 +6,9 @@ import 'package:event_bus/event_bus.dart';
 import 'package:angular/angular.dart' hide Application;
 import 'dart:html';
 
+
+final EventType<bool> showHideNewtMenu = new EventType<bool>();
+
 @Controller(
     selector: '[newt-toolbar]',
     publishAs: 'ctrl')
@@ -32,6 +35,10 @@ class NewtToolbarController {
     return 3;
   }
   
+  void openSearchMenu() {
+    this.eventBus.fire(showHideNewtMenu, null);
+  }
+  
 }
 
 @Controller(
@@ -42,6 +49,7 @@ class NewtMenuController {
   List<MenuItem> menuItems;
   EventBus eventBus;
   ActivityManager manager;
+  bool isOpened = false;
   
   
   NewtMenuController(ActivityManager this.manager, EventBus this.eventBus) {
@@ -54,10 +62,17 @@ class NewtMenuController {
           ..label = m['label']);
       }
     });
+    eventBus.on(showHideNewtMenu).listen((bool show) {
+      if (show==null) {
+        show=!this.isOpened;
+      }
+      this.isOpened = show;
+    });
   }
   
   select(MenuItem menuItem) {
     manager.startRootActivity(menuItem.application.name,menuItem.activityDef['name']);
+    eventBus.fire(showHideNewtMenu, false);
   }
   
 }

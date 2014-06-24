@@ -32,6 +32,16 @@ body {
   border: none;
 }
 
+.newtMenu {
+  position: absolute;
+  top: 51px;
+  bottom: 0px;
+  right: 0px;
+  left: 20%;
+  background-color: white;
+  border-left: 1px solid black;
+}
+
 
 .ng-hide, 
 .ng-show {

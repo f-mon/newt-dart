@@ -56,18 +56,15 @@
                 </li>
                 
           </ul>
-        
-          <ul newt-menu class="nav navbar-nav navbar-left">
-              <li ng-repeat="value in ctrl.menuItems">
-                <a href="#" ng-click="ctrl.select(value)">{{value.label}}</a>
-              </li>
-          </ul>
           
           <ul class="nav navbar-nav navbar-right">
-
+            <li>
+              <a href="#" ng-click="ctrl.openSearchMenu()">
+                <i class="fa fa-search"></i>
+              </a>
+            </li>
             <li ng-show="!ctrl.manager.activityStack.isEmpty">
-              <a href="#" class="btn-warning"
-                ng-click="ctrl.closeActivity()">
+              <a href="#" class="btn-warning" ng-click="ctrl.closeActivity()">
                 <i class="fa fa-times"></i>
               </a>
             </li>
@@ -80,6 +77,14 @@
     </div>
 
     <div newt-display>
+    </div>
+    
+    <div newt-menu class="newtMenu" ng-show="ctrl.isOpened">
+      <ul>
+          <li ng-repeat="value in ctrl.menuItems">
+            <a href="#" ng-click="ctrl.select(value)">{{value.label}}</a>
+          </li>
+      </ul>
     </div>
     
     
